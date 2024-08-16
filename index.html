@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Bot Control</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { 
+            width: 80%; 
+            margin: auto; 
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f4f4f4; }
+        .btn { padding: 10px 20px; border: none; color: white; cursor: pointer; }
+        .start { background-color: #4CAF50; }
+        .stop { background-color: #f44336; }
+        .pause { background-color: #ffa500; }
+        .resume { background-color: #2196F3; }
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        .section {
+            flex: 1;
+            min-width: 0; /* Ensures flexibility for equal sizing */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            /* Make sure each section grows equally */
+            display: flex;
+            flex-direction: column;
+        }
+        .section h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <h1>Instagram Bot Control Panel</h1>
+            
+            <form action="/" method="post">
+                <fieldset>
+                    <legend>Start Bot</legend>
+                    <label for="username">Instagram Username:</label>
+                    <input type="text" id="username" name="username" required>
+                    <br>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                    <br>
+                    <label for="target_type">Target Type:</label>
+                    <select id="target_type" name="target_type" required>
+                        <option value="username">Username</option>
+                        <option value="hashtag">Hashtag</option>
+                    </select>
+                    <br>
+                    <label for="target_value">Target Value:</label>
+                    <input type="text" id="target_value" name="target_value" required>
+                    <br>
+                    <label for="max_likes">Max Likes:</label>
+                    <input type="number" id="max_likes" name="max_likes" required>
+                    <br>
+                    <label for="like_min_interval_hours">Like Min Interval (hh:mm:ss):</label>
+                    <input type="number" id="like_min_interval_hours" name="like_min_interval_hours" min="0" value="0" required>
+                    <input type="number" id="like_min_interval_minutes" name="like_min_interval_minutes" min="0" value="0" required>
+                    <input type="number" id="like_min_interval_seconds" name="like_min_interval_seconds" min="0" value="0" required>
+                    <br>
+                    <label for="like_max_interval_hours">Like Max Interval (hh:mm:ss):</label>
+                    <input type="number" id="like_max_interval_hours" name="like_max_interval_hours" min="0" value="0" required>
+                    <input type="number" id="like_max_interval_minutes" name="like_max_interval_minutes" min="0" value="0" required>
+                    <input type="number" id="like_max_interval_seconds" name="like_max_interval_seconds" min="0" value="0" required>
+                    <br>
+                    <label for="cycle_interval_hours">Cycle Interval (hh:mm:ss):</label>
+                    <input type="number" id="cycle_interval_hours" name="cycle_interval_hours" min="0" value="0" required>
+                    <input type="number" id="cycle_interval_minutes" name="cycle_interval_minutes" min="0" value="0" required>
+                    <input type="number" id="cycle_interval_seconds" name="cycle_interval_seconds" min="0" value="0" required>
+                    <br>
+                    <label for="run_duration_hours">Run Duration (hh:mm:ss):</label>
+                    <input type="number" id="run_duration_hours" name="run_duration_hours" min="0" value="0" required>
+                    <input type="number" id="run_duration_minutes" name="run_duration_minutes" min="0" value="0" required>
+                    <input type="number" id="run_duration_seconds" name="run_duration_seconds" min="0" value="0" required>
+                    <br>
+                    <label for="comment_text">Comment Text:</label>
+                    <input type="text" id="comment_text" name="comment_text">
+                    <br>
+                    <label for="follow_unfollow">Follow/Unfollow:</label>
+                    <select id="follow_unfollow" name="follow_unfollow">
+                        <option value="">None</option>
+                        <option value="follow">Follow</option>
+                        <option value="unfollow">Unfollow</option>
+                    </select>
+                    <br>
+                    <input type="submit" name="start" value="Start Bot" class="btn start">
+                </fieldset>
+            </form>
+
+            <h2>Control Bot</h2>
+            <form action="/" method="post">
+                <label for="control_username">Select Account:</label>
+                <select id="control_username" name="username" required>
+                    {% for username in bot_info['running'].keys() %}
+                    <option value="{{ username }}">{{ username }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <input type="submit" name="pause" value="Pause Bot" class="btn pause">
+                <input type="submit" name="resume" value="Resume Bot" class="btn resume">
+                <input type="submit" name="stop" value="Stop Bot" class="btn stop">
+            </form>
+        </div>
+
+        <div class="row">
+            <div class="section">
+                <h2>Bot Status</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for username, is_running in bot_info['running'].items() %}
+                        <tr>
+                            <td>{{ username }}</td>
+                            <td>
+                                {% if is_running %}
+                                    Running
+                                    {% if bot_info['paused'][username] %}
+                                        (Paused)
+                                    {% endif %}
+                                {% else %}
+                                    Stopped
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>Activity Log</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activity_log %}
+                        <tr>
+                            <td>{{ activity.timestamp }}</td>
+                            <td>
+                                Target Type: {{ activity.target_type }}<br>
+                                Target Value: {{ activity.target_value }}<br>
+                                Max Likes: {{ activity.max_likes }}<br>
+                                Like Min Interval: {{ activity.like_min_interval_hms }}<br>
+                                Like Max Interval: {{ activity.like_max_interval_hms }}<br>
+                                Cycle Interval: {{ activity.cycle_interval_hms }}<br>
+                                Run Duration: {{ activity.run_duration_hms }}<br>
+                                Comment Text: {{ activity.comment_text }}<br>
+                                Follow/Unfollow: {{ activity.follow_unfollow }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>Notifications</h2>
+                <ul>
+                    {% for notification in notifications %}
+                    <li>{{ notification }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
